@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>New Faculty Portal</title>
+</head>
+<body>
+	<h1>Add New Faculty</h1>
+
+	<form action="" method="POST">
+		{{ form.hidden_tag() }}
+		<p>
+			{{ form.position.label }}
+			{{ form.position(size=20)}}
+		</p>
+
+		<p>
+			{{ form.dept_name.label }}
+			{{ form.dept_name(size=20)}}
+
+			Leave blank in case of cross-cutting faculty
+		</p>
+
+		<p>
+			{{ form.faculty_id.label }}
+			{{ form.faculty_id(size=20)}}
+		</p>
+
+		<p>{{ form.submit(class = "btn btn-outline-info") }}</p>
+
+	</form>
+
+	<footer>
+		<a href="/home">Home Page</a>
+	</footer>
+
+</body>
+</html>

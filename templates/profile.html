@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Profile</title>
+</head>
+<body>
+	<header>
+		
+	</header>
+	{% for dict_item in arr %}
+   {% for key, value in dict_item.items() %}
+      <h1>Key: {{key}}</h1>
+      <h2>Value: {{value}}</h2>
+   {% endfor %}
+{% endfor %}
+
+	<footer>
+		<a href="/faculty">Faculty Login Page</a>
+	</footer>
+</body>
+</html>

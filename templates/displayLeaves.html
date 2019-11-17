@@ -1,0 +1,41 @@
+<html>
+    <body>
+        <h2>Current Leaves</h2>
+        <table>
+            {%for row in data%}
+            <tr>
+                {%for d in row%}
+                    <td style="white-space:pre-wrap; word-wrap:break-word; vertical-align: top;">{{d}}</td>
+                {%endfor%}
+                {%set a_string = 'a' + row[0]|string%}
+                {%set r_string = 'r' + row[0]|string%}
+                {%set c_string = 'c' + row[0]|string%}
+                <td><button name="{{a_string}}" onClick = "listener(this.name)">Accept</button></td>
+                <td><button name = "{{r_string}}" onClick = "listener(this.name)">Reject</button></td>
+                <form method = "get">
+                    <!-- <td><input name = "comment"></td>
+                    <td><input type = "submit" name = "post" value = "Post"></td> -->
+                    <td><input type = "submit" name = "approve" value = "{{row[0]}}" id = "{{a_string}}" hidden></td>
+                    <td><input type = "submit" name = "reject" value = "{{row[0]}}" id = "{{r_string}}" hidden></td>
+                    <td><input type = "submit" name = "comment" value = "{{row[0]}}" id = "{{c_string}}" hidden></td>
+                </form>
+                {%set comment_redirect = "/viewLeaves/" + approver_name + "/" + position%}
+                {%if department is not none%}
+                    {%set comment_redirect = comment_redirect + "/" + department%}
+                {%endif%}
+                <form  method="get"> 
+                    <td><textarea name="textbox"></textarea></td>
+                    <td><button name="{{c_string}}" id = "lol" onClick = "document.getElementById(this.name).click()">Submit</button></td>
+                    
+                </form>
+            </tr>
+            {%endfor%}
+        </table>
+    </body>
+</html>
+
+<script>
+    function listener(id){
+        document.getElementById(id).click();
+    }
+</script>

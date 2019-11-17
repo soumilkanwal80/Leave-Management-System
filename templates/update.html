@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Update Profile</title>
+</head>
+<body>
+	<h1>Update Page</h1>
+
+	<form action="" method="POST">
+		{{ form.hidden_tag() }}
+
+		<p>FACULTY-ID {{ faculty_id }}</p>
+
+		<p>
+			{{ form.name.label }}
+			{{ form.name(size=32)}}
+			Leave empty if you want your name to remain as {{ name }}
+		</p>
+
+		<p>
+			{{ form.alma_mater.label }}
+			{{ form.alma_mater(size=32)}}
+			Leave empty if you want your alma_mater to remain as {{ alma_mater }}
+		</p>
+
+		<p>
+			{{ form.education.label }}
+			{{ form.education(size=32)}}
+			Leave empty if you want your education to remain as {{ education }}
+		</p>
+
+		<p>{{ form.update(class = "btn btn-outline-info") }}</p>
+
+
+	</form>	
+</body>
+</html>

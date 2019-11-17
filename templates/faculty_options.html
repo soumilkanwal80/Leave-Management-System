@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Faculty Options</title>
+</head>
+<body>
+	<h1>This is faculty options </h1>
+	<p>Faculty ID:{{ faculty_id }}</p>
+	<a href={{ url_for('home') }}>Home Page</a>
+	<a href={{ url_for("profile",faculty_id = faculty_id)}}>Profile</a>
+	<a href={{ url_for("update",faculty_id = faculty_id)}}>Update</a>
+	<a href={{ url_for("faculty")}}>Faculty Login</a>
+	<a href={{ url_for("applyLeave", status = 'AT HOD ' + dept_name, faculty_id = faculty_id)}}>Apply Leave</a>
+	<a href={{ url_for("view_leave_status",faculty_id = faculty_id)}}>View Leave Status</a>
+</body>
+</html>

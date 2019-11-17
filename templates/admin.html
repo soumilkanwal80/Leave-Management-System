@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Admin Options</title>
+</head>
+<body>
+	<h1>Welcome to admin options</h1>
+
+	<form action="" method="POST">
+		{{ form.hidden_tag() }}
+		<p>
+			{{ form.admin_id.label }}
+			{{ form.admin_id(size=10)}}
+		</p>
+
+		<p>
+			{{ form.password.label }}
+			{{ form.password(size=20)}}
+		</p>
+		
+		<p>{{ form.submit(class = "btn btn-outline-info") }}</p>
+	</form>
+
+	<footer>
+		<a href="/home">Home Page</a>
+	</footer>
+
+</body>
+</html>

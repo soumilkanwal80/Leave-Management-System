@@ -1,0 +1,251 @@
+from flask import Flask,render_template,flash,redirect,url_for,request
+from faculty_login_form import FacultyLoginForm
+import initialize as init
+import faculty_logic
+import pprint
+from faculty_update_form import FacultyUpdateForm
+from admin_login_form import AdminLoginForm
+from new_faculty_form import NewFacultyForm
+import admin_logic
+from delete_faculty_form import DeleteFacultyForm
+from change_position_form import ChangePositionForm
+from hod_login_form import HODLoginForm
+import os
+# from flask import Flask, request, url_for, render_template, redirect, flash
+from leaves import initialize, insert_leaves_table, getLeavesWithStatus, getBorrowedLeaves, update_leave_table, delete_from_borrowed, insert_trail, getLeaveDataWithLeaveId, add_comments
+from flask_wtf import  FlaskForm
+from wtforms import StringField, DateField, SubmitField, TextField
+from wtforms.validators import DataRequired, Length
+from datetime import datetime
+
+
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = '1234'
+initialize()
+
+
+
+class LeaveApplicationForm(FlaskForm):
+    start_date = DateField('Start Date', [DataRequired()], format='%Y-%m-%d')
+    end_date = DateField('End Date', [DataRequired()],  format='%Y-%m-%d')
+    reason = TextField('Reason')
+    submit = SubmitField('Submit')
+
+
+
+
+
+@app.route('/applyLeave/<int:faculty_id>/<string:status>', methods = ('GET', 'POST'))
+def applyLeave(status, faculty_id):
+    leaveApplication = LeaveApplicationForm()
+    if(not leaveApplication.validate_on_submit()):
+        print('Invalid Form')
+        return render_template('leaveApplication.html', form = leaveApplication, faculty_id = faculty_id, status = status)
+    x = insert_leaves_table(leaveApplication.start_date.data, leaveApplication.end_date.data, leaveApplication.reason.data, faculty_id, status)
+    print(x)
+    if x != -1:
+   		faculty_logic.assign_leave_id(faculty_id,x)
+    return redirect(url_for('home'))
+
+
+@app.route('/viewLeaves/<approver_name>/<position>', defaults = {'department': None})
+@app.route('/viewLeaves/<approver_name>/<position>/<department>', methods = ["GET", "POST"])
+def viewLeaves(approver_name, position, department = None):
+    if department is not None:
+        status = 'AT ' + str(position) + ' ' + str(department)
+    else:
+        status = 'AT ' + str(position)
+
+    if(request.values.get('approve') is not None):
+        leave_id_approved = int(request.values.get('approve'))
+        row = getLeaveDataWithLeaveId(leave_id_approved)
+        approver_position = position
+        if(position == 'HOD'):
+            approver_position = position + ' ' + department
+
+        insert_trail(approver_name, leave_id_approved, approver_position)
+
+        if(position == 'HOD'):
+            # insert_leaves_table(row[1], row[2], row[3], row[6], 'AT DFA')
+            update_leave_table('AT DFA', leave_id_approved)
+
+        if(position == 'DIRECTOR' or position == 'DFA'):
+            update_leave_table(
+                'APPROVED AT ' + position, leave_id_approved)
+            start_date = row[1]
+            end_date = row[2]
+            # s_d = date(int(start_date[0:4]),int(start_date[5:7]),int(start_date[8:10]))
+            # e_d = date(int(end_date[0:4]),int(end_date[5:7]),int(end_date[8:10]))
+            diff = end_date - start_date
+            # list_leaves.append([row[6], diff.days])
+            delete_from_borrowed(leave_id_approved)
+
+    if(request.values.get('reject') is not None):
+        leave_id_rejected = int(request.values.get('reject'))
+        update_leave_table('REJECTED ' + status,
+                    leave_id_rejected)
+        delete_from_borrowed(leave_id_rejected)
+    
+    
+    comment = request.args.get('textbox')
+    print(comment)
+    print(request.args.get('comment'))
+    if(comment is not None and request.values.get('comment') is not None):
+        print('hr')
+        leave_id_comment = int(request.values.get('comment'))
+        comment = position + ': ' + comment + '\n'
+        add_comments(leave_id_comment, comment)
+        
+
+
+    allLeaves = getLeavesWithStatus(status)
+    updatedLeaves = []
+    for row in allLeaves:
+        borrowedLeaves = getBorrowedLeaves(row[0])
+        x = list(row)
+        if(borrowedLeaves != []):
+            borrowedLeaves = borrowedLeaves[0]
+            x.append(borrowedLeaves[1])
+        else:
+            x.append('0')
+        updatedLeaves.append(x)
+    updatedLeaves = tuple(updatedLeaves)
+    
+    return render_template('displayLeaves.html', data=updatedLeaves, approver_name = approver_name, position = position, department = None)
+
+
+@app.route('/view_leave_status/<faculty_id>')
+def view_leave_status(faculty_id):
+	leave_details = faculty_logic.check_leave_status(faculty_id)
+	return render_template('leave_details.html', leave_details = leave_details)
+
+
+
+
+@app.route('/')
+@app.route('/home')
+def home():
+	return render_template('home.html')
+
+@app.route('/faculty_options')
+def faculty_options():
+	render_template('faculty_options.html')
+
+@app.route('/profile/<faculty_id>')
+def profile(faculty_id):
+	print('faculty_id:' + str(type(faculty_id)))
+	# print('contents:' + str(type(contents)))
+	print(faculty_id)
+	# print(contents)
+
+	details = faculty_logic.view_faculty_detail(faculty_id)
+
+	if len(details) == 0:
+		return render_template('error_faculty_id.html')
+	print(details)
+	for var in details:
+		print('INSIDE APP.PY')
+		pprint.pprint(details)
+	return render_template('profile.html',arr = details)
+
+
+
+@app.route('/update/<faculty_id>',methods = ['GET','POST'])
+def update(faculty_id):
+	details = faculty_logic.view_faculty_detail(faculty_id)
+
+	if len(details) == 0:
+		return render_template('error_faculty_id.html')
+	
+	form = FacultyUpdateForm()
+	if form.validate_on_submit():
+		flash(f'Details updated','success')
+
+
+		faculty_logic.update_faculty_detail(faculty_id,form.name.data,form.alma_mater.data,form.education.data)
+		return render_template('faculty_options.html',faculty_id = faculty_id)
+
+	return render_template('update.html',faculty_id = details[0]['faculty_id'],name = details[0]['name']
+		,alma_mater = details[0]['alma_mater'],education = details[0]['education'],form = form)	
+
+
+	
+@app.route('/faculty',methods=['GET','POST'])
+def faculty():
+	form = FacultyLoginForm()
+	if form.validate_on_submit():
+		flash(f'Account created for {form.faculty_id.data}','success')
+		print('faculty_id:'+ form.faculty_id.data + 'password:'+form.password.data)
+		# contents = initialize.get_cursor()
+		details = faculty_logic.view_faculty_detail(form.faculty_id.data)
+
+		return render_template('faculty_options.html',faculty_id = form.faculty_id.data, dept_name = details[0]['dept_name'])
+
+	return render_template('faculty.html', form = form)	
+
+
+@app.route('/admin',methods = ['GET','POST'])
+def admin():
+	form = AdminLoginForm()
+	if form.validate_on_submit():
+		flash(f'Admin Login Succesful')
+		return render_template('admin_options.html')
+	return render_template('admin.html', form = form)
+
+@app.route('/new_faculty',methods = ['GET','POST'])
+def new_faculty():
+	form = NewFacultyForm()
+	if form.validate_on_submit():
+		print("Form validate_on_submit")
+		admin_logic.add_faculty_mongo(form.name.data,form.alma_mater.data,form.education.data,form.dept_name.data,form.position.data)
+		return render_template('admin_options.html')
+	return render_template('new_faculty.html',form = form)
+
+
+@app.route('/view_all_faculty')	
+def view_all_faculty():
+	arr = admin_logic.view_faculty_mongo()
+	return render_template('view_all_faculty.html', arr = arr)
+
+
+@app.route('/delete_faculty', methods = ['GET','POST'])
+def delete_faculty():
+	form = DeleteFacultyForm()
+	if form.validate_on_submit():
+		print('Deletion Form validated')
+		admin_logic.delete_faculty_mongo(form.faculty_id.data)
+		return render_template('admin_options.html')
+
+	return render_template('delete_faculty.html',form = form)
+
+@app.route('/change_position', methods = ['GET','POST'])
+def change_position():
+	form = ChangePositionForm()
+	if form.validate_on_submit():
+		print('Change position validated')
+		admin_logic.change_faculty_position(form.position.data,form.dept_name.data,form.faculty_id.data)		
+
+	return render_template('change_position.html',form = form)
+
+
+@app.route('/hod_login',methods = ['GET','POST'])
+def hod_login():
+	form = HODLoginForm()	
+	if form.validate_on_submit():
+		print('Form validated succesfully')
+		mongo_cursor = init.get_cursor()
+		details = list(mongo_cursor.find({
+			'position':'HOD'
+			}))
+
+		print(details)
+		return redirect(url_for('viewLeaves',approver_name = details[0]['name'], position = 'HOD', department = details[0]['dept_name'])) 
+		# viewLeaves(approver_name = details[0]['name'], position = 'HOD', department = details[0]['dept_name'])
+
+
+	return render_template('hod_login.html', form = form)
+
+if __name__ == "__main__":
+	app.run(debug=True)
+	

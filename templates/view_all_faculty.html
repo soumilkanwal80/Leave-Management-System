@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>All Faculty</title>
+</head>
+<body>
+	<header>
+		<a href="/faculty">Faculty Login Page</a>
+	</header>
+	{% for var in arr %}
+		<tr>
+			{% for key,value in var.items() %}
+			   <td>
+			   {{ key }}
+			   {{ value }}
+				</td>
+			{% endfor %}
+			<br>
+		</tr>
+	{% endfor %}
+</body>
+</html>
