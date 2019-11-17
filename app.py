@@ -1,4 +1,4 @@
-from flask import Flask,render_template,flash,redirect,url_for,request
+from flask import Flask, render_template, flash, redirect, url_for, request
 from faculty_login_form import FacultyLoginForm
 import initialize as init
 import faculty_logic
@@ -11,6 +11,7 @@ from delete_faculty_form import DeleteFacultyForm
 from change_position_form import ChangePositionForm
 from hod_login_form import HODLoginForm
 import os
+import re
 # from flask import Flask, request, url_for, render_template, redirect, flash
 from leaves import initialize, insert_leaves_table, getLeavesWithStatus, getBorrowedLeaves, update_leave_table, delete_from_borrowed, insert_trail, getLeaveDataWithLeaveId, add_comments
 from flask_wtf import  FlaskForm
@@ -27,8 +28,8 @@ initialize()
 
 
 class LeaveApplicationForm(FlaskForm):
-    start_date = DateField('Start Date', [DataRequired()], format='%Y-%m-%d')
-    end_date = DateField('End Date', [DataRequired()],  format='%Y-%m-%d')
+    start_date = DateField('Start Date', [DataRequired()], format = '%Y-%m-%d')
+    end_date = DateField('End Date', [DataRequired()], format = '%Y-%m-%d')
     reason = TextField('Reason')
     submit = SubmitField('Submit')
 
@@ -39,64 +40,71 @@ class LeaveApplicationForm(FlaskForm):
 @app.route('/applyLeave/<int:faculty_id>/<string:status>', methods = ('GET', 'POST'))
 def applyLeave(status, faculty_id):
     leaveApplication = LeaveApplicationForm()
-    if(not leaveApplication.validate_on_submit()):
+    if (not leaveApplication.validate_on_submit()):
         print('Invalid Form')
         return render_template('leaveApplication.html', form = leaveApplication, faculty_id = faculty_id, status = status)
     x = insert_leaves_table(leaveApplication.start_date.data, leaveApplication.end_date.data, leaveApplication.reason.data, faculty_id, status)
     print(x)
     if x != -1:
-   		faculty_logic.assign_leave_id(faculty_id,x)
+   		faculty_logic.assign_leave_id(faculty_id, x)
     return redirect(url_for('home'))
 
 
-@app.route('/viewLeaves/<approver_name>/<position>', defaults = {'department': None})
+@app.route('/viewLeaves/<approver_name>/<position>', defaults =  {'department':None})
 @app.route('/viewLeaves/<approver_name>/<position>/<department>', methods = ["GET", "POST"])
 def viewLeaves(approver_name, position, department = None):
     if department is not None:
         status = 'AT ' + str(position) + ' ' + str(department)
     else:
         status = 'AT ' + str(position)
-
-    if(request.values.get('approve') is not None):
+ 
+    if (request.values.get('approve')is not None):
         leave_id_approved = int(request.values.get('approve'))
         row = getLeaveDataWithLeaveId(leave_id_approved)
         approver_position = position
-        if(position == 'HOD'):
+        if (position == 'HOD'):
             approver_position = position + ' ' + department
 
         insert_trail(approver_name, leave_id_approved, approver_position)
 
-        if(position == 'HOD'):
+        if (position == 'HOD'):
             # insert_leaves_table(row[1], row[2], row[3], row[6], 'AT DFA')
             update_leave_table('AT DFA', leave_id_approved)
 
-        if(position == 'DIRECTOR' or position == 'DFA'):
+        if (position == 'DIRECTOR'or position == 'DFA'):
             update_leave_table(
                 'APPROVED AT ' + position, leave_id_approved)
             start_date = row[1]
             end_date = row[2]
-            # s_d = date(int(start_date[0:4]),int(start_date[5:7]),int(start_date[8:10]))
-            # e_d = date(int(end_date[0:4]),int(end_date[5:7]),int(end_date[8:10]))
+            # s_d = date(int(start_date[0:4]), int(start_date[5:7]), int(start_date[8:10]))
+            # e_d = date(int(end_date[0:4]), int(end_date[5:7]), int(end_date[8:10]))
             diff = end_date - start_date
             # list_leaves.append([row[6], diff.days])
             delete_from_borrowed(leave_id_approved)
 
-    if(request.values.get('reject') is not None):
+    elif (request.values.get('reject')is not None):
         leave_id_rejected = int(request.values.get('reject'))
-        update_leave_table('REJECTED ' + status,
+        update_leave_table('REJECTED ' + status, 
                     leave_id_rejected)
         delete_from_borrowed(leave_id_rejected)
-    
-    
-    comment = request.args.get('textbox')
-    print(comment)
-    print(request.args.get('comment'))
-    if(comment is not None and request.values.get('comment') is not None):
-        print('hr')
-        leave_id_comment = int(request.values.get('comment'))
-        comment = position + ': ' + comment + '\n'
-        add_comments(leave_id_comment, comment)
-        
+    else:
+        c_regex = re.compile(r'c(\d)+')
+        comment = None
+        leave_id_comment = None
+        val = request.values
+        request.values = None
+        if(val is not None):
+            for key in val:
+                k = c_regex.match(key)
+                if(k is not None):
+                    leave_id_comment = key[1:]
+                if(key == 'textbox'):
+                    comment = val[key]
+            if(comment is None and leave_id_comment is None):
+                print('why')
+            elif(comment is not '' and leave_id_comment is not ''):
+                comment = position + ': ' + comment + '\n'
+                add_comments(leave_id_comment, comment)
 
 
     allLeaves = getLeavesWithStatus(status)
@@ -247,5 +255,5 @@ def hod_login():
 	return render_template('hod_login.html', form = form)
 
 if __name__ == "__main__":
-	app.run(debug=True)
+	app.run(debug = True)
 	

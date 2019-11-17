@@ -99,7 +99,7 @@ def getLeavesWithStatus(status):
         else:
             break
 
-    return rows
+    return rows 
 
 def getBorrowedLeaves(leave_id):
     cursor.execute(
