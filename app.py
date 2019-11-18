@@ -11,6 +11,8 @@ from delete_faculty_form import DeleteFacultyForm
 from change_position_form import ChangePositionForm
 from hod_login_form import HODLoginForm
 from dean_login_form import DeanLoginForm
+from director_login_form import DirectorLoginForm
+from leave_details_form import LeaveDetailsForm
 import os
 import re
 # from flask import Flask, request, url_for, render_template, redirect, flash
@@ -127,7 +129,13 @@ def viewLeaves(approver_name, position, department = None):
 @app.route('/view_leave_status/<faculty_id>')
 def view_leave_status(faculty_id):
 	leave_details = faculty_logic.check_leave_status(faculty_id)
-	return render_template('leave_details.html', leave_details = leave_details)
+	form = LeaveDetailsForm()
+	if form.validate_on_submit():
+		print('Leave details form validated')
+		###############################
+		return render_template('leave_details.html', leave_details = leave_details, form = form)
+		###############################
+	return render_template('leave_details.html', leave_details = leave_details, form = form)
 
 
 
@@ -245,7 +253,8 @@ def hod_login():
 		print('Form validated succesfully')
 		mongo_cursor = init.get_cursor()
 		details = list(mongo_cursor.find({
-			'position':'HOD'
+			'position':'HOD',
+			'dept_name': form.dept_name.data
 			}))
 
 		print(details)
@@ -268,8 +277,20 @@ def dean_login():
 		return redirect(url_for('viewLeaves',approver_name = details[0]['name'], position = details[0]['position']))
 	return render_template('dean_login.html',form = form)
 
-		
 
+@app.route('/director_login',methods = ['GET','POST'])
+def director_login():
+	form = DirectorLoginForm()
+	if form.validate_on_submit():
+		print('Director Login Succesful')
+		mongo_cursor = init.get_cursor()
+		details = list(mongo_cursor.find({
+			'position':'Director'
+			}))
+		print(details) 		
+		return redirect(url_for('viewLeaves',approver_name = details[0]['name'], position = details[0]['position']))
+
+	return render_template('director_login.html', form = form)	
 
 if __name__ == "__main__":
 	app.run(debug = True)
