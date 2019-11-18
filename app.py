@@ -165,8 +165,11 @@ def view_leave_status(faculty_id):
 	form = LeaveDetailsForm()
 	if form.validate_on_submit():
 		print('Leave details form validated')
+		leaves.add_comments((int)(leave_details.leave_id),form.comment.data)
+		new_details = faculty_logic.check_leave_status(faculty_id)
+		form.comment.data = ''
 		###############################
-		return render_template('leave_details.html', leave_details = leave_details, form = form)
+		# return render_template('leave_details.html', leave_details = new_details, form = form)
 		###############################
 	return render_template('leave_details.html', leave_details = leave_details, form = form)
 
