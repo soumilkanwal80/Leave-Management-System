@@ -25,6 +25,7 @@ def add_faculty_mongo(new_name,new_alma_mater,new_education,new_dept_name,new_po
 	leaves_left = default_leaves
 	leave_id = None
 	position = new_position
+	password = 'password'
 
 	faculty = {
 	'faculty_id': faculty_id,
@@ -34,7 +35,8 @@ def add_faculty_mongo(new_name,new_alma_mater,new_education,new_dept_name,new_po
 	'dept_name': dept_name,
 	'leaves_left': leaves_left,
 	'leave_id': leave_id,
-	'position':position
+	'position':position,
+	'password':password
 	}
 
 
@@ -43,6 +45,8 @@ def add_faculty_mongo(new_name,new_alma_mater,new_education,new_dept_name,new_po
 
 	if result.acknowledged:
 		print('Faculty added succesfully--ID:' + str(result.inserted_id))
+
+		
 
 
 def view_faculty_mongo():

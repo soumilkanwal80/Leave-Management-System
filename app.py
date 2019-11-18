@@ -265,7 +265,12 @@ def faculty():
 		# contents = initialize.get_cursor()
 		details = faculty_logic.view_faculty_detail(form.faculty_id.data)
 
-		return render_template('faculty_options.html',faculty_id = form.faculty_id.data, dept_name = details[0]['dept_name'])
+		if details[0]['password'] == form.password.data:
+			return render_template('faculty_options.html',faculty_id = form.faculty_id.data, dept_name = details[0]['dept_name'])	
+
+		else:
+			return render_template('error_template.html', error = 'Password for Faculty-ID:' + str(details[0]['faculty_id']) + ' is incorrect')	
+		
 
 	return render_template('faculty.html', form = form)	
 
@@ -356,7 +361,7 @@ def director_login():
 			'position':'Director'
 			}))
 		print(details) 		
-		return redirect(url_for('viewLeaves',approver_name = details[0]['name'], position = details[0]['position']))
+		return redirect(url_for('viewLeaves',approver_name = details[0]['name'], position = (details[0]['position']).upper()))
         
 
 	return render_template('director_login.html', form = form)	
