@@ -59,6 +59,8 @@ def get_current_position_num(position_name):
     # cursor.execute('''SELECT id FROM faculty_leaves_order WHERE approver_position = %s''' %(position_name))
     cursor.execute("SELECT id FROM faculty_leaves_order WHERE approver_position = %s;", [position_name])
     rows = cursor.fetchall()
+    if(rows == []):
+        return -1
     return rows[0][0]
 
 def update_faculty_leaves_order_table(approver_position):

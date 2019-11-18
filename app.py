@@ -12,7 +12,7 @@ from change_position_form import ChangePositionForm
 from hod_login_form import HODLoginForm
 from dean_login_form import DeanLoginForm
 from director_login_form import DirectorLoginForm
-from leave_details_form import LeaveDetailsForm
+from leave_details_form  import LeaveDetailsForm
 import os
 import re
 # from flask import Flask, request, url_for, render_template, redirect, flash
@@ -68,6 +68,7 @@ def viewLeaves(approver_name, position, department = None):
     max_position_num = get_faculty_leaves_order_table_size()
     position_num = get_current_position_num(position)
 
+
     if position == 'HOD' and department is not None:
         status = 'AT ' + str(position) + ' ' + str(department)
     else:
@@ -88,7 +89,10 @@ def viewLeaves(approver_name, position, department = None):
             delete_from_borrowed(leave_id_approved)
         
         else:
-            update_leave_table('AT ' + get_current_position_name(position_num+1), leave_id_approved)
+            new_position = get_current_position_name(position_num + 1)
+            if new_position == 'HOD':
+                new_position = new_position + ' ' + faculty_logic.get_dept_name(row[6])
+            update_leave_table('AT ' + new_position, leave_id_approved)
 
         # approver_position = position
         # if (position == 'HOD'):
