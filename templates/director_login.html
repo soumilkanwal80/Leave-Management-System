@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Director Login</title>
+</head>
+<body>
+	<h1>Director Login</h1>
+
+	<form action="" method="POST">
+		{{ form.hidden_tag() }}
+		<p>
+			{{ form.director_id.label }}
+			{{ form.director_id(size=10)}}
+		</p>
+
+
+		<p>
+			{{ form.password.label }}
+			{{ form.password(size=20)}}
+		</p>
+		
+		<p>{{ form.submit(class = "btn btn-outline-info") }}</p>
+	</form>
+
+	<footer>
+		<a href="/home">Home Page</a>
+	</footer>
+</body>
+</html>

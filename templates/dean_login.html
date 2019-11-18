@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Dean Login</title>
+</head>
+<body>
+	<h1>Dean Login</h1>
+
+	<form action="" method="POST">
+		{{ form.hidden_tag() }}
+		<p>
+			{{ form.dean_id.label }}
+			{{ form.dean_id(size=10)}}
+		</p>
+
+		<p>
+			{{ form.area.label }}
+			{{ form.area(size=10)}}
+			<br>
+			Enter FA: Faculty Affairs<br>
+			Enter SA: Student Affairs<br>
+		</p>
+
+		<p>
+			{{ form.password.label }}
+			{{ form.password(size=20)}}
+		</p>
+		
+		<p>{{ form.submit(class = "btn btn-outline-info") }}</p>
+	</form>
+
+	<footer>
+		<a href="/home">Home Page</a>
+	</footer>
+</body>
+</html>
