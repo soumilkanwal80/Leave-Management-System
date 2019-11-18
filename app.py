@@ -13,6 +13,7 @@ from hod_login_form import HODLoginForm
 from dean_login_form import DeanLoginForm
 from director_login_form import DirectorLoginForm
 from leave_details_form  import LeaveDetailsForm
+from change_password_form import ChangePasswordForm
 import os
 import re
 # from flask import Flask, request, url_for, render_template, redirect, flash
@@ -365,6 +366,27 @@ def director_login():
         
 
 	return render_template('director_login.html', form = form)	
+
+@app.route('/change_password/<faculty_id>', methods = ['GET', 'POST'])
+def change_password(faculty_id):
+	form = ChangePasswordForm()
+	if form.validate_on_submit():
+		print('Password change form validated')
+		mongo_cursor = init.get_cursor()
+		details = list(mongo_cursor.find({
+			'faculty_id': (int)(faculty_id)
+			}))
+
+		if details[0]['password'] == form.current_password.data and form.new_password.data == form.confirm_new_password.data:
+			mongo_cursor.update_one({'faculty_id':(int)(faculty_id)},{
+			'$set':{
+			'password': form.new_password.data
+			}
+		})
+
+		return redirect(url_for('faculty'))	
+
+	return render_template('change_password.html', form = form)		
 
 if __name__ == "__main__":
 	app.run(debug = True)
