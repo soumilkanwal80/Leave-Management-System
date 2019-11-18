@@ -183,7 +183,12 @@ def assign_leave_id(faculty_id,leave_id):
 	'leave_id':(int)(leave_id)
 	}})
 
-
+def get_dept_name(id):
+	cursor  = initialize.get_cursor()
+	arr = list(cursor.find({
+		'faculty_id': (int)(id)
+		}))
+	return arr[0]['dept_name']
 
 def check_leave_status(id):
 	# id = (int)(input('Enter id:'))
