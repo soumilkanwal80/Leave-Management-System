@@ -30,9 +30,43 @@ def initialize():
                         approved_on DATE NOT NULL,
                         leave_id INTEGER NOT NULL
                 );''')
+    
+    cursor.execute('''CREATE TABLE IF NOT EXISTS faculty_leaves_order(
+                        id INTEGER PRIMARY KEY,
+                        approver_position TEXT NOT NULL
+                    );''')
+    
+    
 
     conn.commit()
 
+def drop_faculty_leaves_order_table():
+    cursor.execute('''DELETE FROM faculty_leaves_order;''')
+    conn.commit()
+
+def get_faculty_leaves_order_table_size():
+    cursor.execute('''SELECT count(*) FROM faculty_leaves_order;''')
+    rows = cursor.fetchall()
+    return rows[0][0] 
+
+def get_current_position_name(position_num):
+    cursor.execute('''SELECT approver_position FROM faculty_leaves_order WHERE id = %s''' %(str(position_num)))
+    rows = cursor.fetchall()
+    return rows[0][0]
+
+def get_current_position_num(position_name):
+    print(position_name)
+    # cursor.execute('''SELECT id FROM faculty_leaves_order WHERE approver_position = %s''' %(position_name))
+    cursor.execute("SELECT id FROM faculty_leaves_order WHERE approver_position = %s;", [position_name])
+    rows = cursor.fetchall()
+    return rows[0][0]
+
+def update_faculty_leaves_order_table(approver_position):
+    cursor.execute('''SELECT count(*) FROM faculty_leaves_order;''')
+    rows = cursor.fetchall()
+    num = rows[0][0] + 1
+    cursor.execute('''INSERT INTO faculty_leaves_order(id, approver_position) VALUES(%s, %s);''', (num, approver_position))
+    conn.commit()
 
 def insert_leaves_table(start_date, end_date, reason, faculty_id, status, days_borrowed=None):
 

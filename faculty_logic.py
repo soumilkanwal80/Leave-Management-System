@@ -109,7 +109,11 @@ def apply_leave(contents):
 
 	leaves_left = arr[0]['leaves_left']
 
-
+	if leaves.get_current_position_name(1) == 'HOD':
+		status = 'AT HOD ' + dept_name
+	else:
+		status = 'AT ' + leaves.get_current_position_name(1)
+	print('Status: ' + status)
 
 	if(diff.days>(leaves_left)):
 		if(diff.days < leaves_left + default_leaves):
@@ -123,13 +127,17 @@ def apply_leave(contents):
 						borrowed_leaves = diff.days
 					
 
-					if arr[0]['position'] == 'HOD':
-						status = 'AT DIRECTOR'
-					elif arr[0]['position'] == 'DFA':
-						status = 'AT DIRECTOR'
-					else:
-						status = 'AT HOD ' + dept_name
+					# if arr[0]['position'] == 'HOD':
+					# 	status = 'AT DIRECTOR'
+					# elif arr[0]['position'] == 'DFA':
+					# 	status = 'AT DIRECTOR'
+					# else:
+					# 	status = 'AT HOD ' + dept_name
 					
+					# if leaves.get_current_position_name(1) == 'HOD':
+					# 	status = 'AT HOD ' + dept_name
+					# else:
+					# 	status = 'AT ' + leaves.get_current_position_name(1)
 					leave_id = leaves.insert_leaves_table(start_date,end_date,reason,id,status,borrowed_leaves)
 
 					if leave_id == -1:
@@ -149,12 +157,14 @@ def apply_leave(contents):
 
 
 	else:
-		if arr[0]['position'] == 'HOD':
-			status = 'AT DIRECTOR'
-		elif arr[0]['position'] == 'DFA':
-			status = 'AT DIRECTOR'
-		else:
-			status = 'AT HOD ' + dept_name
+		# if arr[0]['position'] == 'HOD':
+		# 	status = 'AT DIRECTOR'
+		# elif arr[0]['position'] == 'DFA':
+		# 	status = 'AT DIRECTOR'
+		# else:
+		# 	status = 'AT HOD ' + dept_name
+
+
 		leave_id = leaves.insert_leaves_table(start_date,end_date,reason,id,status)
 
 		if leave_id == -1:

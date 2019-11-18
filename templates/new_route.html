@@ -1,0 +1,13 @@
+<html>
+    <body>
+        <h1>Change Route</h1>
+        <form method = "POST" action = "/admin/change_route/submit">
+            {%for i in range(1, 10)%}
+                {%set inp_name = 'text_' + i|string %}
+                <input type = "text" name = "{{inp_name}}">
+                <br>
+            {%endfor%}
+            <input type = "submit">
+        </form>
+    </body>
+</html>

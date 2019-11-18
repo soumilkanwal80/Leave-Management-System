@@ -13,7 +13,7 @@ from hod_login_form import HODLoginForm
 import os
 import re
 # from flask import Flask, request, url_for, render_template, redirect, flash
-from leaves import initialize, insert_leaves_table, getLeavesWithStatus, getBorrowedLeaves, update_leave_table, delete_from_borrowed, insert_trail, getLeaveDataWithLeaveId, add_comments
+from leaves import initialize, insert_leaves_table, getLeavesWithStatus, getBorrowedLeaves, update_leave_table, delete_from_borrowed, insert_trail, getLeaveDataWithLeaveId, add_comments, drop_faculty_leaves_order_table, update_faculty_leaves_order_table, get_faculty_leaves_order_table_size, get_current_position_name, get_current_position_num
 from flask_wtf import  FlaskForm
 from wtforms import StringField, DateField, SubmitField, TextField
 from wtforms.validators import DataRequired, Length
@@ -37,12 +37,19 @@ class LeaveApplicationForm(FlaskForm):
 
 
 
-@app.route('/applyLeave/<int:faculty_id>/<string:status>', methods = ('GET', 'POST'))
-def applyLeave(status, faculty_id):
+@app.route('/applyLeave/<int:faculty_id>', methods = ('GET', 'POST'))
+def applyLeave(faculty_id):
     leaveApplication = LeaveApplicationForm()
     if (not leaveApplication.validate_on_submit()):
         print('Invalid Form')
-        return render_template('leaveApplication.html', form = leaveApplication, faculty_id = faculty_id, status = status)
+        return render_template('leaveApplication.html', form = leaveApplication, faculty_id = faculty_id)
+    
+    if get_current_position_name(1) == 'HOD':
+        status = 'AT HOD ' + 'CSE'
+    else:
+        status = 'AT ' + get_current_position_name(1)
+    print('Status: ' + status)
+
     x = insert_leaves_table(leaveApplication.start_date.data, leaveApplication.end_date.data, leaveApplication.reason.data, faculty_id, status)
     print(x)
     if x != -1:
@@ -53,34 +60,53 @@ def applyLeave(status, faculty_id):
 @app.route('/viewLeaves/<approver_name>/<position>', defaults =  {'department':None})
 @app.route('/viewLeaves/<approver_name>/<position>/<department>', methods = ["GET", "POST"])
 def viewLeaves(approver_name, position, department = None):
-    if department is not None:
+    check = False
+
+    max_position_num = get_faculty_leaves_order_table_size()
+    position_num = get_current_position_num(position)
+
+    if position == 'HOD' and department is not None:
         status = 'AT ' + str(position) + ' ' + str(department)
     else:
         status = 'AT ' + str(position)
- 
+
+    
+
     if (request.values.get('approve')is not None):
         leave_id_approved = int(request.values.get('approve'))
         row = getLeaveDataWithLeaveId(leave_id_approved)
-        approver_position = position
-        if (position == 'HOD'):
-            approver_position = position + ' ' + department
-
-        insert_trail(approver_name, leave_id_approved, approver_position)
-
-        if (position == 'HOD'):
-            # insert_leaves_table(row[1], row[2], row[3], row[6], 'AT DFA')
-            update_leave_table('AT DFA', leave_id_approved)
-
-        if (position == 'DIRECTOR'or position == 'DFA'):
+        if(position_num == max_position_num):
             update_leave_table(
                 'APPROVED AT ' + position, leave_id_approved)
             start_date = row[1]
             end_date = row[2]
-            # s_d = date(int(start_date[0:4]), int(start_date[5:7]), int(start_date[8:10]))
-            # e_d = date(int(end_date[0:4]), int(end_date[5:7]), int(end_date[8:10]))
             diff = end_date - start_date
             # list_leaves.append([row[6], diff.days])
             delete_from_borrowed(leave_id_approved)
+        
+        else:
+            update_leave_table('AT ' + get_current_position_name(position_num+1), leave_id_approved)
+
+        # approver_position = position
+        # if (position == 'HOD'):
+        #     approver_position = position + ' ' + department
+
+        insert_trail(approver_name, leave_id_approved, 'kkkk')
+
+        # if (position == 'HOD'):
+        #     # insert_leaves_table(row[1], row[2], row[3], row[6], 'AT DFA')
+        #     update_leave_table('AT DFA', leave_id_approved)
+
+        # if (position == 'DIRECTOR'or position == 'DFA'):
+        #     update_leave_table(
+        #         'APPROVED AT ' + position, leave_id_approved)
+        #     start_date = row[1]
+        #     end_date = row[2]
+        #     # s_d = date(int(start_date[0:4]), int(start_date[5:7]), int(start_date[8:10]))
+        #     # e_d = date(int(end_date[0:4]), int(end_date[5:7]), int(end_date[8:10]))
+        #     diff = end_date - start_date
+        #     # list_leaves.append([row[6], diff.days])
+        #     delete_from_borrowed(leave_id_approved)
 
     elif (request.values.get('reject')is not None):
         leave_id_rejected = int(request.values.get('reject'))
@@ -92,8 +118,8 @@ def viewLeaves(approver_name, position, department = None):
         comment = None
         leave_id_comment = None
         val = request.values
-        request.values = None
         if(val is not None):
+            
             for key in val:
                 k = c_regex.match(key)
                 if(k is not None):
@@ -103,6 +129,7 @@ def viewLeaves(approver_name, position, department = None):
             if(comment is None and leave_id_comment is None):
                 print('why')
             elif(comment is not '' and leave_id_comment is not ''):
+                check = True
                 comment = position + ': ' + comment + '\n'
                 add_comments(leave_id_comment, comment)
 
@@ -119,8 +146,10 @@ def viewLeaves(approver_name, position, department = None):
             x.append('0')
         updatedLeaves.append(x)
     updatedLeaves = tuple(updatedLeaves)
-    
-    return render_template('displayLeaves.html', data=updatedLeaves, approver_name = approver_name, position = position, department = None)
+    if check is False:
+        return render_template('displayLeaves.html', data=updatedLeaves, approver_name = approver_name, position = position, department = None)
+    else:
+        return redirect(request.path, code = 302)
 
 
 @app.route('/view_leave_status/<faculty_id>')
@@ -129,6 +158,23 @@ def view_leave_status(faculty_id):
 	return render_template('leave_details.html', leave_details = leave_details)
 
 
+@app.route('/admin/change_route', methods = ["POST", "GET"])
+def changeRoute():
+    return render_template('new_route.html')
+
+@app.route('/admin/change_route/submit', methods = ["POST", "GET"])
+def updateRoute():
+    drop_faculty_leaves_order_table()
+    maxi = 0;
+    for i in range(1, 10):
+        person = request.values.get("text_" + str(i))
+        if person is '':
+            maxi = i
+            break
+        update_faculty_leaves_order_table(person)
+
+            
+    return redirect(url_for('admin'))
 
 
 @app.route('/')

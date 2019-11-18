@@ -2,7 +2,7 @@
     <body>
         <div class="formwrapper">
         <h2 class="title">Leave Application</h2>
-        {%set redirect_url = "/applyLeave/" + faculty_id|string + "/" + status%}
+        {%set redirect_url = "/applyLeave/" + faculty_id|string %}
         <form method="POST" action = "{{redirect_url}}">
             {{ form.csrf_token }}
             <div class="form-field">{{ form.start_date.label }} {{ form.start_date }}

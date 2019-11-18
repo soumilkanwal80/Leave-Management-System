@@ -10,7 +10,7 @@
 	<a href={{ url_for("profile",faculty_id = faculty_id)}}>Profile</a>
 	<a href={{ url_for("update",faculty_id = faculty_id)}}>Update</a>
 	<a href={{ url_for("faculty")}}>Faculty Login</a>
-	<a href={{ url_for("applyLeave", status = 'AT HOD ' + dept_name, faculty_id = faculty_id)}}>Apply Leave</a>
+	<a href={{ url_for("applyLeave", faculty_id = faculty_id)}}>Apply Leave</a>
 	<a href={{ url_for("view_leave_status",faculty_id = faculty_id)}}>View Leave Status</a>
 </body>
 </html>
