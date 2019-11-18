@@ -10,6 +10,7 @@ import admin_logic
 from delete_faculty_form import DeleteFacultyForm
 from change_position_form import ChangePositionForm
 from hod_login_form import HODLoginForm
+from dean_login_form import DeanLoginForm
 import os
 import re
 # from flask import Flask, request, url_for, render_template, redirect, flash
@@ -253,6 +254,22 @@ def hod_login():
 
 
 	return render_template('hod_login.html', form = form)
+
+@app.route('/dean_login',methods = ['GET','POST'])
+def dean_login():
+	form = DeanLoginForm()
+	if form.validate_on_submit():
+		print('Dean Login Succesful')
+		mongo_cursor = init.get_cursor()
+		details = list(mongo_cursor.find({
+			'position':'D' + form.area.data
+			}))
+		print(details)
+		return redirect(url_for('viewLeaves',approver_name = details[0]['name'], position = details[0]['position']))
+	return render_template('dean_login.html',form = form)
+
+		
+
 
 if __name__ == "__main__":
 	app.run(debug = True)
