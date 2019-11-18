@@ -53,6 +53,9 @@ def applyLeave(faculty_id):
         status = 'AT ' + get_current_position_name(1)
     print('Status: ' + status)
 
+    if faculty_logic.get_faculty_type(faculty_id) == False:
+        status = 'AT DIRECTOR'
+
     x = insert_leaves_table(leaveApplication.start_date.data, leaveApplication.end_date.data, leaveApplication.reason.data, faculty_id, status)
     print(x)
     if x != -1:
@@ -68,31 +71,37 @@ def viewLeaves(approver_name, position, department = None):
     max_position_num = get_faculty_leaves_order_table_size()
     position_num = get_current_position_num(position)
 
-
     if position == 'HOD' and department is not None:
         status = 'AT ' + str(position) + ' ' + str(department)
     else:
         status = 'AT ' + str(position)
 
-    
-
     if (request.values.get('approve')is not None):
         leave_id_approved = int(request.values.get('approve'))
         row = getLeaveDataWithLeaveId(leave_id_approved)
-        if(position_num == max_position_num):
+        if faculty_logic.get_faculty_type(row[6]) == True:
+            if(position_num == max_position_num):
+                update_leave_table(
+                    'APPROVED AT ' + position, leave_id_approved)
+                start_date = row[1]
+                end_date = row[2]
+                diff = end_date - start_date
+                # list_leaves.append([row[6], diff.days])
+                delete_from_borrowed(leave_id_approved)
+            
+            else:
+                new_position = get_current_position_name(position_num + 1)
+                if new_position == 'HOD':
+                    new_position = new_position + ' ' + faculty_logic.get_dept_name(row[6])
+                update_leave_table('AT ' + new_position, leave_id_approved)
+        else:
             update_leave_table(
-                'APPROVED AT ' + position, leave_id_approved)
+                'APPROVED AT DIRECTOR', leave_id_approved)
             start_date = row[1]
             end_date = row[2]
             diff = end_date - start_date
             # list_leaves.append([row[6], diff.days])
             delete_from_borrowed(leave_id_approved)
-        
-        else:
-            new_position = get_current_position_name(position_num + 1)
-            if new_position == 'HOD':
-                new_position = new_position + ' ' + faculty_logic.get_dept_name(row[6])
-            update_leave_table('AT ' + new_position, leave_id_approved)
 
         # approver_position = position
         # if (position == 'HOD'):
@@ -339,6 +348,7 @@ def director_login():
 			}))
 		print(details) 		
 		return redirect(url_for('viewLeaves',approver_name = details[0]['name'], position = details[0]['position']))
+        
 
 	return render_template('director_login.html', form = form)	
 
