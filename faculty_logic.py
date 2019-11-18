@@ -1,6 +1,6 @@
 import pprint
 import leaves
-from datetime import datetime,date
+from datetime import datetime, date
 import initialize
 
 default_leaves = 15
@@ -218,7 +218,13 @@ def check_leave_status(id):
 
 	return leaves.leave_status(arr[0]['leave_id'])
 
-	
+
+def getRemainingLeaves(id):
+	cursor  = initialize.get_cursor()
+	arr = list(cursor.find({
+		'faculty_id': (int)(id)
+		}))
+	return arr[0]['leaves_left']	
 
 
 if __name__ == "__main__":
