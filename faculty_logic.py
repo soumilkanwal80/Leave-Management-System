@@ -87,6 +87,17 @@ def update_faculty_detail(id,new_name,new_alma_mater,new_education):
 
 	print('UPDATED DONE')
 
+def get_faculty_type(id):
+	cursor  = initialize.get_cursor()
+	arr = list(cursor.find({
+		'faculty_id': (int)(id)
+		}))
+	pos =  arr[0]['position']
+	if(pos == 'Faculty'):
+		return True
+	else:
+		return False
+
 
 def apply_leave(contents):
 	id = (int)(input('Enter id:'))
