@@ -98,6 +98,12 @@ def get_faculty_type(id):
 	else:
 		return False
 
+def update_leaves(faculty_id, leave_to_deduct):
+	cursor = initialize.get_cursor()
+	current_leaves = getRemainingLeaves(faculty_id)
+	cursor.update_one({'faculty_id':(int)(faculty_id)},{'$set':{
+		'leaves_left':int(current_leaves)-int(leave_to_deduct)
+	}})
 
 def apply_leave(contents):
 	id = (int)(input('Enter id:'))

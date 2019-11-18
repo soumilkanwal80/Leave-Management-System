@@ -28,7 +28,10 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = '1234'
 initialize()
 
-
+s_d = 1
+e_d = 1
+rsn = 1
+stus = 1
 
 class LeaveApplicationForm(FlaskForm):
     start_date = DateField('Start Date', [DataRequired()], format = '%Y-%m-%d')
@@ -56,11 +59,72 @@ def applyLeave(faculty_id):
     if faculty_logic.get_faculty_type(faculty_id) == False:
         status = 'AT DIRECTOR'
 
+    start_date = leaveApplication.start_date.data
+    end_date = leaveApplication.end_date.data
+
+    leaves_left = faculty_logic.getRemainingLeaves(faculty_id)
+    diff_date = end_date - start_date
+    days_applied = diff_date.days
+    default_leaves = 15
+    if(days_applied > leaves_left):
+        if(days_applied < leaves_left + default_leaves):
+            global s_d, e_d, rsn, stus
+            s_d = start_date
+            e_d = end_date
+            rsn = leaveApplication.reason.data
+            stus = status
+            return redirect(url_for('borrowLeaves', faculty_id = faculty_id, days_applied = days_applied, leaves_left = leaves_left))
+    else:
+        return redirect(url_for('not_enough_leaves_left'))
+
     x = insert_leaves_table(leaveApplication.start_date.data, leaveApplication.end_date.data, leaveApplication.reason.data, faculty_id, status)
     print(x)
     if x != -1:
    		faculty_logic.assign_leave_id(faculty_id, x)
+    else:
+        return redirect(url_for('leave_exists'))
+    
     return redirect(url_for('home'))
+
+@app.route('/not_enough_leaves_left')
+def not_enough_leaves_left():
+    return 'Not Enough Leaves Left'
+
+@app.route('/leave_already_applied')
+def leave_exists():
+    return 'Leave Already Exists'
+
+@app.route('/borrow_leave/<faculty_id>/<days_applied>/<leaves_left>', methods = ["GET", "POST"])
+def borrowLeaves(faculty_id, days_applied, leaves_left):
+    leaves_left = int(leaves_left)
+    days_applied = int(days_applied)
+    borrowed_left = leaves_left + 15
+    if(borrowed_left > 15):
+        borrowed_left = 15
+    if(leaves_left < 0):
+        leaves_left = 0
+    param = 0
+    if(request.method == "POST"):
+        choice = request.values.get('choice')
+        if(choice == "yes"):
+            if leaves_left + 15 > 0:
+                if leaves_left >= 0:
+                    borrowed_leaves = days_applied - leaves_left	
+                else:
+                    borrowed_leaves = days_applied
+            else:
+                return redirect(url_for('not_enough_leaves_left'))
+
+            x = insert_leaves_table(s_d, e_d, rsn, faculty_id, stus, borrowed_leaves)
+            if x != -1:
+                faculty_logic.assign_leave_id(faculty_id, x)
+                return redirect(url_for('home'))
+            else:
+                return redirect(url_for('leave_exists'))
+        else:
+            return redirect(url_for('applyLeave', faculty_id))
+
+    return render_template('borrowLeaves.html', leaves_left = leaves_left, borrowed_left =  borrowed_left, param = param)
 
 
 @app.route('/viewLeaves/<approver_name>/<position>', defaults =  {'department':None})
@@ -86,7 +150,7 @@ def viewLeaves(approver_name, position, department = None):
                 start_date = row[1]
                 end_date = row[2]
                 diff = end_date - start_date
-                # list_leaves.append([row[6], diff.days])
+                faculty_logic.update_leaves(row[6], diff.days)
                 delete_from_borrowed(leave_id_approved)
             
             else:
@@ -100,7 +164,7 @@ def viewLeaves(approver_name, position, department = None):
             start_date = row[1]
             end_date = row[2]
             diff = end_date - start_date
-            # list_leaves.append([row[6], diff.days])
+            faculty_logic.update_leaves(row[6], diff.days)
             delete_from_borrowed(leave_id_approved)
 
         # approver_position = position
