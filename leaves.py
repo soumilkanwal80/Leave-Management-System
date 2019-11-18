@@ -3,8 +3,8 @@ from datetime import datetime, date
 
 #position = HOD CSE/ME/EE, DFA, ADFA, DIRECTOR
 
-conn = psycopg2.connect(host="127.0.0.1", user="admin",
-                        password="admin", port="5432", database="database")
+conn = psycopg2.connect(host="127.0.0.1", user="postgres",
+                        password="inbruge137", port="5432", database="database")
 cursor = conn.cursor()
 
 
