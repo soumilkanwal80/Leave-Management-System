@@ -13,6 +13,7 @@ from hod_login_form import HODLoginForm
 from dean_login_form import DeanLoginForm
 from director_login_form import DirectorLoginForm
 from leave_details_form  import LeaveDetailsForm
+from change_password_form import ChangePasswordForm
 import os
 import re
 # from flask import Flask, request, url_for, render_template, redirect, flash
@@ -232,17 +233,23 @@ def viewLeaves(approver_name, position, department = None):
         return redirect(request.path, code = 302)
 
 
-@app.route('/view_leave_status/<faculty_id>')
+@app.route('/view_leave_status/<faculty_id>', methods = ['GET','POST'])
 def view_leave_status(faculty_id):
 	leave_details = faculty_logic.check_leave_status(faculty_id)
 	form = LeaveDetailsForm()
 	if form.validate_on_submit():
+		mongo_cursor = init.get_cursor()
+		details = list(mongo_cursor.find({
+			'faculty_id': (int)(faculty_id)
+			}))
+
+		name = details[0]['name']
 		print('Leave details form validated')
-		leaves.add_comments((int)(leave_details.leave_id),form.comment.data)
+		add_comments((int)(leave_details['leave_id']),name + ': ' + form.comment.data)
 		new_details = faculty_logic.check_leave_status(faculty_id)
 		form.comment.data = ''
 		###############################
-		# return render_template('leave_details.html', leave_details = new_details, form = form)
+		return render_template('leave_details.html', leave_details = new_details, form = form)
 		###############################
 	return render_template('leave_details.html', leave_details = leave_details, form = form)
 
@@ -323,7 +330,12 @@ def faculty():
 		# contents = initialize.get_cursor()
 		details = faculty_logic.view_faculty_detail(form.faculty_id.data)
 
-		return render_template('faculty_options.html',faculty_id = form.faculty_id.data, dept_name = details[0]['dept_name'])
+		if details[0]['password'] == form.password.data:
+			return render_template('faculty_options.html',faculty_id = form.faculty_id.data, dept_name = details[0]['dept_name'])	
+
+		else:
+			return render_template('error_template.html', error = 'Password for Faculty-ID:' + str(details[0]['faculty_id']) + ' is incorrect')	
+		
 
 	return render_template('faculty.html', form = form)	
 
@@ -414,10 +426,31 @@ def director_login():
 			'position':'Director'
 			}))
 		print(details) 		
-		return redirect(url_for('viewLeaves',approver_name = details[0]['name'], position = details[0]['position']))
+		return redirect(url_for('viewLeaves',approver_name = details[0]['name'], position = (details[0]['position']).upper()))
         
 
 	return render_template('director_login.html', form = form)	
+
+@app.route('/change_password/<faculty_id>', methods = ['GET', 'POST'])
+def change_password(faculty_id):
+	form = ChangePasswordForm()
+	if form.validate_on_submit():
+		print('Password change form validated')
+		mongo_cursor = init.get_cursor()
+		details = list(mongo_cursor.find({
+			'faculty_id': (int)(faculty_id)
+			}))
+
+		if details[0]['password'] == form.current_password.data and form.new_password.data == form.confirm_new_password.data:
+			mongo_cursor.update_one({'faculty_id':(int)(faculty_id)},{
+			'$set':{
+			'password': form.new_password.data
+			}
+		})
+
+		return redirect(url_for('faculty'))	
+
+	return render_template('change_password.html', form = form)		
 
 if __name__ == "__main__":
 	app.run(debug = True)
