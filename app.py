@@ -122,7 +122,7 @@ def borrowLeaves(faculty_id, days_applied, leaves_left):
             else:
                 return redirect(url_for('leave_exists'))
         else:
-            return redirect(url_for('applyLeave', faculty_id))
+            return redirect(url_for('applyLeave', faculty_id = faculty_id))
 
     return render_template('borrowLeaves.html', leaves_left = leaves_left, borrowed_left =  borrowed_left, param = param)
 
@@ -386,10 +386,14 @@ def delete_faculty():
 			'faculty_id':(int)(form.faculty_id.data)
 			}))
 
+		if len(details) == 0:
+			return render_template('error_template.html', error = 'Faculty-ID:' + form.faculty_id.data + ' is not present in database')
+
 		if details[0]['position'] == 'HOD' or details[0]['position'] == 'DFA' or details[0]['position'] == 'DSA' or details[0]['position'] == 'DIRECTOR':
 			return (render_template('error_template.html',
 				error = 'Cannot delete HOD account. Assign someone else as ' + details[0]['position'] + '( or add a new ' 
 				 + details[0]['position'] +') before deleting this account'))
+		
 		print('Deletion Form validated')
 		admin_logic.delete_faculty_mongo(form.faculty_id.data)
 		return render_template('admin_options.html')

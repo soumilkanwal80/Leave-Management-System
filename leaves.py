@@ -43,6 +43,7 @@ def initialize():
 
 def drop_faculty_leaves_order_table():
     cursor.execute('''DELETE FROM faculty_leaves_order;''')
+    cursor.execute('''UPDATE leaves SET status = %s WHERE status LIKE %s;''',("LEAVE APPLICATION INVALIDATED","AT%"))
     conn.commit()
 
 def get_faculty_leaves_order_table_size():
