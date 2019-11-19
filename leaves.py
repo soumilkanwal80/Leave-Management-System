@@ -256,3 +256,9 @@ def print_leaves_table():
     rows = cursor.fetchall()
     for row in rows:
         print(row[0])
+
+
+def get_trail():
+    cursor.execute('''SELECT * FROM record_of_leaves''')
+    rows = cursor.fetchall()
+    return rows
