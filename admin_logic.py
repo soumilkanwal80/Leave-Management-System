@@ -100,19 +100,55 @@ def change_faculty_position(req_position,req_dept,new_faculty_id):
 				old_hod_id = i['faculty_id']
 
 		print('old hod id:' + str(old_hod_id))
-		print('new_hod_id:' + str(new_hod_id))		
+		print('new_hod_id:' + str(new_hod_id))
 
-		cursor.update_one({'faculty_id':old_hod_id},{
+		if old_hod_id == -1:
+			cursor.update_one({'faculty_id':old_hod_id},{
 			'$set':{
 			'position':'Faculty'
-			}
-		})
+			}})		
+
+		
 
 		cursor.update_one({'faculty_id':new_hod_id},{
 			'$set':{
 			'position':'HOD'
 			}
-		})			
+		})
+
+
+	if req_position == 'DFA' or req_position == 'DSA' or req_position == 'ADFA' or req_dept == 'DIRECTOR':
+		dept = req_dept
+		# result = cursor.find({
+		# 	'dept_name':dept
+		# 	})
+		old_id = -1
+		new_id = (int)(new_faculty_id)
+
+		arr = list(cursor.find({
+			'position': req_position
+			}))
+
+		print(arr)
+		if len(arr) != 0:
+			old_id = arr[0]['faculty_id']
+
+		# print('old hod id:' + str(old_hod_id))
+		# print('new_hod_id:' + str(new_hod_id))
+
+		if old_id != -1:
+			cursor.update_one({'faculty_id':old_id},{
+			'$set':{
+			'position':'Faculty'
+			}})		
+
+		
+
+		cursor.update_one({'faculty_id':new_id},{
+			'$set':{
+			'position':req_position
+			}
+		})				
 
 # def admin_func(contents):
 # 	print('admin access granted')

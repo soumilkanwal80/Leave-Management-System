@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Leave Trail</title>
+</head>
+<body>
+	<header>
+		<a href="/faculty">Faculty Login Page</a>
+		<a href={{ url_for("admin_options") }}>Back</a>
+	</header>
+	{% for var in arr %}
+		{% for i in var %}
+		<td>{{i}}</td>
+		{% endfor %}
+		<br>
+	{% endfor %}
+</body>
+</html>

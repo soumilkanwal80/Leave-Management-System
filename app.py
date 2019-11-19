@@ -18,6 +18,7 @@ import os
 import re
 # from flask import Flask, request, url_for, render_template, redirect, flash
 from leaves import initialize, insert_leaves_table, getLeavesWithStatus, getBorrowedLeaves, update_leave_table, delete_from_borrowed, insert_trail, getLeaveDataWithLeaveId, add_comments, drop_faculty_leaves_order_table, update_faculty_leaves_order_table, get_faculty_leaves_order_table_size, get_current_position_name, get_current_position_num
+from leaves import get_trail
 from flask_wtf import  FlaskForm
 from wtforms import StringField, DateField, SubmitField, TextField
 from wtforms.validators import DataRequired, Length
@@ -504,7 +505,13 @@ def change_password(faculty_id):
 
 		return redirect(url_for('faculty'))	
 
-	return render_template('change_password.html', form = form, faculty_id = faculty_id)		
+	return render_template('change_password.html', form = form, faculty_id = faculty_id)
+
+
+@app.route('/view_trail')
+def view_trail():
+	arr = get_trail()
+	return render_template('trail.html', arr = arr) 			
 
 if __name__ == "__main__":
 	app.run(debug = True)
