@@ -292,7 +292,7 @@ def profile(faculty_id):
 	details = faculty_logic.view_faculty_detail(faculty_id)
 
 	if len(details) == 0:
-		return render_template('error_faculty_id.html')
+		return render_template('error_template.html', error = 'Faculty-ID:' + form.faculty_id.form + 'is not present in database')
 	print(details)
 	for var in details:
 		print('INSIDE APP.PY')
@@ -306,7 +306,7 @@ def update(faculty_id):
 	details = faculty_logic.view_faculty_detail(faculty_id)
 
 	if len(details) == 0:
-		return render_template('error_faculty_id.html')
+		return render_template('error_template.html', error = 'Faculty-ID:' + form.faculty_id.form + 'is not present in database')
 	
 	form = FacultyUpdateForm()
 	if form.validate_on_submit():
@@ -329,6 +329,9 @@ def faculty():
 		print('faculty_id:'+ form.faculty_id.data + 'password:'+form.password.data)
 		# contents = initialize.get_cursor()
 		details = faculty_logic.view_faculty_detail(form.faculty_id.data)
+
+		if len(details) == 0:
+			return render_template('error_template.html', error = 'Faculty-ID:' + form.faculty_id.data + ' is not in database')
 
 		if details[0]['password'] == form.password.data:
 			return render_template('faculty_options.html',faculty_id = form.faculty_id.data, dept_name = details[0]['dept_name'])	
@@ -361,6 +364,8 @@ def new_faculty():
 @app.route('/view_all_faculty')	
 def view_all_faculty():
 	arr = admin_logic.view_faculty_mongo()
+	if len(arr) == 0:
+		return render_template('error_template.html', error = 'No Faculty has been added yet')
 	return render_template('view_all_faculty.html', arr = arr)
 
 
@@ -368,6 +373,15 @@ def view_all_faculty():
 def delete_faculty():
 	form = DeleteFacultyForm()
 	if form.validate_on_submit():
+		mongo_cursor = init.get_cursor()
+		details = list(mongo_cursor.find({
+			'faculty_id':(int)(form.faculty_id.data)
+			}))
+
+		if details[0]['position'] == 'HOD' or details[0]['position'] == 'DFA' or details[0]['position'] == 'DSA' or details[0]['position'] == 'DIRECTOR':
+			return (render_template('error_template.html',
+				error = 'Cannot delete HOD account. Assign someone else as ' + details[0]['position'] + '( or add a new ' 
+				 + details[0]['position'] +') before deleting this account'))
 		print('Deletion Form validated')
 		admin_logic.delete_faculty_mongo(form.faculty_id.data)
 		return render_template('admin_options.html')
@@ -379,6 +393,22 @@ def change_position():
 	form = ChangePositionForm()
 	if form.validate_on_submit():
 		print('Change position validated')
+		mongo_cursor = init.get_cursor()
+		details = list(mongo_cursor.find({
+			'faculty_id':(int)(form.faculty_id.data)
+			}))
+
+		if len(details) == 0:
+			return render_template('error_template.html', error = 'Faculty-ID:' + form.faculty_id.data + 'does not exist in database')
+
+		if form.dept_name.data == 'None' and form.position.data == 'HOD':
+			return render_template('error_template.html', error = 'Please specify department while changing HOD')
+
+		if form.dept_name.data != details[0]['dept_name'] and form.position.data == 'HOD':	
+			return render_template('error_template.html', error = 'Faculty being made HOD should be of the same department\n' + 
+				'current department of faculty:' + details[0]['dept_name'] +
+				'\n department being assigned:' + form.dept_name.data)
+		
 		admin_logic.change_faculty_position(form.position.data,form.dept_name.data,form.faculty_id.data)		
 
 	return render_template('change_position.html',form = form)
@@ -394,6 +424,9 @@ def hod_login():
 			'position':'HOD',
 			'dept_name': form.dept_name.data
 			}))
+
+		if len(details) == 0:
+			return render_template('error_template.html', error = 'There is no HOD for ' + form.dept_name.data + ' department')
 
 		print(details)
 		return redirect(url_for('viewLeaves',approver_name = details[0]['name'], position = 'HOD', department = details[0]['dept_name'])) 
@@ -411,6 +444,9 @@ def dean_login():
 		details = list(mongo_cursor.find({
 			'position':'D' + form.area.data
 			}))
+
+		if len(details) == 0:
+			return render_template('error_template.html', error = 'There is no D' + form.area.data)
 		print(details)
 		return redirect(url_for('viewLeaves',approver_name = details[0]['name'], position = details[0]['position']))
 	return render_template('dean_login.html',form = form)
@@ -425,6 +461,9 @@ def director_login():
 		details = list(mongo_cursor.find({
 			'position':'Director'
 			}))
+
+		if len(details) == 0:
+			return render_template('error_template.html', error = 'No Director has been appointed')
 		print(details) 		
 		return redirect(url_for('viewLeaves',approver_name = details[0]['name'], position = (details[0]['position']).upper()))
         
@@ -440,6 +479,9 @@ def change_password(faculty_id):
 		details = list(mongo_cursor.find({
 			'faculty_id': (int)(faculty_id)
 			}))
+
+		if len(details) == 0:
+			return render_template('error_template.html', error = 'Faculty-ID:' + form.faculty_id.data + 'does not exist in database')
 
 		if details[0]['password'] == form.current_password.data and form.new_password.data == form.confirm_new_password.data:
 			mongo_cursor.update_one({'faculty_id':(int)(faculty_id)},{
