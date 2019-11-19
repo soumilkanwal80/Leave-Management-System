@@ -117,7 +117,7 @@ def change_faculty_position(req_position,req_dept,new_faculty_id):
 		})
 
 
-	if req_position == 'DFA' or req_position == 'DSA' or req_position == 'ADFA' or req_dept == 'DIRECTOR':
+	if req_position == 'DFA' or req_position == 'DSA' or req_position == 'ADFA' or req_position == 'DIRECTOR':
 		dept = req_dept
 		# result = cursor.find({
 		# 	'dept_name':dept
