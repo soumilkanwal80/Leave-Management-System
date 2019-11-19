@@ -67,6 +67,7 @@ def applyLeave(faculty_id):
     diff_date = end_date - start_date
     days_applied = diff_date.days
     default_leaves = 15
+
     if(days_applied > leaves_left):
         if(days_applied < leaves_left + default_leaves):
             global s_d, e_d, rsn, stus
@@ -75,8 +76,6 @@ def applyLeave(faculty_id):
             rsn = leaveApplication.reason.data
             stus = status
             return redirect(url_for('borrowLeaves', faculty_id = faculty_id, days_applied = days_applied, leaves_left = leaves_left))
-    else:
-        return redirect(url_for('not_enough_leaves_left'))
 
     x = insert_leaves_table(leaveApplication.start_date.data, leaveApplication.end_date.data, leaveApplication.reason.data, faculty_id, status)
     print(x)
@@ -135,6 +134,7 @@ def viewLeaves(approver_name, position, department = None):
 
     max_position_num = get_faculty_leaves_order_table_size()
     position_num = get_current_position_num(position)
+
 
     if position == 'HOD' and department is not None:
         status = 'AT ' + str(position) + ' ' + str(department)
@@ -248,7 +248,7 @@ def view_leave_status(faculty_id):
 
 		name = details[0]['name']
 		print('Leave details form validated')
-		add_comments((int)(leave_details['leave_id']),name + ': ' + form.comment.data)
+		add_comments((int)(leave_details['leave_id']),name + ': ' + form.comment.data + '\n')
 		new_details = faculty_logic.check_leave_status(faculty_id)
 		form.comment.data = ''
 		###############################

@@ -48,6 +48,7 @@ def drop_faculty_leaves_order_table():
 def get_faculty_leaves_order_table_size():
     cursor.execute('''SELECT count(*) FROM faculty_leaves_order;''')
     rows = cursor.fetchall()
+    print(rows)
     return rows[0][0] 
 
 def get_current_position_name(position_num):
