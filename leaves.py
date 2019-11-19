@@ -230,6 +230,10 @@ def leave_status(leave_id):
 
     print('LEAVE ID:' + str(leave_id))
 
+    if str(leave_id) == 'None':
+        arr = {}
+        return arr
+
     cursor.execute(
         '''SELECT * FROM leaves WHERE leave_id = %s;''' % (leave_id))
     rows = cursor.fetchall()

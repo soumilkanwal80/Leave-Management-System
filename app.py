@@ -236,6 +236,9 @@ def viewLeaves(approver_name, position, department = None):
 @app.route('/view_leave_status/<faculty_id>', methods = ['GET','POST'])
 def view_leave_status(faculty_id):
 	leave_details = faculty_logic.check_leave_status(faculty_id)
+
+	if len(leave_details) == 0:
+		return render_template('error_template.html', error = 'No leave application')
 	form = LeaveDetailsForm()
 	if form.validate_on_submit():
 		mongo_cursor = init.get_cursor()
@@ -249,9 +252,9 @@ def view_leave_status(faculty_id):
 		new_details = faculty_logic.check_leave_status(faculty_id)
 		form.comment.data = ''
 		###############################
-		return render_template('leave_details.html', leave_details = new_details, form = form)
+		return render_template('leave_details.html', leave_details = new_details, form = form, faculty_id = faculty_id)
 		###############################
-	return render_template('leave_details.html', leave_details = leave_details, form = form)
+	return render_template('leave_details.html', leave_details = leave_details, form = form, faculty_id = faculty_id)
 
 
 @app.route('/admin/change_route', methods = ["POST", "GET"])
@@ -278,9 +281,10 @@ def updateRoute():
 def home():
 	return render_template('home.html')
 
-@app.route('/faculty_options')
-def faculty_options():
-	render_template('faculty_options.html')
+# @app.route('/faculty_options')
+@app.route('/faculty_options/<faculty_id>')
+def faculty_options(faculty_id, methods = ['GET', 'POST']):
+	return render_template('faculty_options.html', faculty_id = faculty_id)
 
 @app.route('/profile/<faculty_id>')
 def profile(faculty_id):
@@ -350,6 +354,10 @@ def admin():
 		flash(f'Admin Login Succesful')
 		return render_template('admin_options.html')
 	return render_template('admin.html', form = form)
+
+@app.route('/admin_options')	
+def admin_options():
+	return render_template('admin_options.html')
 
 @app.route('/new_faculty',methods = ['GET','POST'])
 def new_faculty():
@@ -492,7 +500,7 @@ def change_password(faculty_id):
 
 		return redirect(url_for('faculty'))	
 
-	return render_template('change_password.html', form = form)		
+	return render_template('change_password.html', form = form, faculty_id = faculty_id)		
 
 if __name__ == "__main__":
 	app.run(debug = True)

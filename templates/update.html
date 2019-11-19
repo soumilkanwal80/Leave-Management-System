@@ -5,6 +5,9 @@
 </head>
 <body>
 	<h1>Update Page</h1>
+	<header>
+		<a href={{ url_for("faculty_options",faculty_id = faculty_id )}}>Faculty Options</a>
+	</header>
 
 	<form action="" method="POST">
 		{{ form.hidden_tag() }}
