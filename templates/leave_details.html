@@ -5,13 +5,14 @@
 </head>
 <body>
 	<h1>Status : {{ leave_details.status }}</h1>
-	<h1>Comments : {{ leave_details.comments }}</h1>
+	<h1>Comments:</h1>
+	<h2 style="white-space:pre-wrap; word-wrap:break-word;">{{ leave_details.comments }}</h2>
 	<header>
 		<a href={{ url_for("faculty_options",faculty_id = faculty_id )}}>Faculty Options</a>
 	</header>
 	<form action="" method="POST">
 		{{ form.hidden_tag() }}
-		<p>
+		<p >
 			{{ form.comment.label }}
 			{{ form.comment(size=20)}}
 		</p>
