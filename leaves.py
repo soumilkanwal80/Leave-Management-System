@@ -59,6 +59,11 @@ def update_position_history(faculty_id, position, department = None):
     cursor.execute('''UPDATE position_history SET end_date = %s WHERE faculty_id = %s AND position = %s AND end_date IS NULL''', (datetime.now(), faculty_id, position))
     conn.commit()
 
+def get_position_history():
+    cursor.execute('''SELECT * FROM position_history;''')
+    rows  = cursor.fetchall()
+    return rows
+
 
 def drop_faculty_leaves_order_table():
     cursor.execute('''DELETE FROM faculty_leaves_order;''')
