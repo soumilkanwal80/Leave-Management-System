@@ -1,5 +1,6 @@
 import pprint
 import initialize
+import leaves
 
 default_leaves = 15
 
@@ -117,6 +118,14 @@ def change_faculty_position(req_position,req_dept,new_faculty_id):
 		})
 
 
+
+		if old_hod_id != -1:
+			leaves.update_position_history((int)(old_hod_id), 'HOD', req_dept)
+		
+		leaves.insert_position_history((int)(new_hod_id), 'HOD', req_dept)
+
+
+
 	if req_position == 'DFA' or req_position == 'DSA' or req_position == 'ADFA' or req_position == 'DIRECTOR':
 		dept = req_dept
 		# result = cursor.find({
@@ -148,7 +157,13 @@ def change_faculty_position(req_position,req_dept,new_faculty_id):
 			'$set':{
 			'position':req_position
 			}
-		})				
+		})	
+
+		if old_id != -1:
+			leaves.update_position_history((int)(old_id), req_position)
+		
+		leaves.insert_position_history((int)(new_id), req_position)
+			
 
 # def admin_func(contents):
 # 	print('admin access granted')
