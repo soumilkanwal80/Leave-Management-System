@@ -252,18 +252,24 @@ def leave_status(leave_id):
     print('LEAVE ID:' + str(leave_id))
 
     if str(leave_id) == 'None':
+        print('inside if case---------')
         arr = {}
         return arr
 
     cursor.execute(
         '''SELECT * FROM leaves WHERE leave_id = %s;''' % (leave_id))
     rows = cursor.fetchall()
+    print(rows)
     # print('Status: ' + rows[0][5])
     # print('Comments: ' + rows[0][4])
     # c = input("Do you want to enter any comments(y/n): ")
     # if(c == 'y'):
     #     comments = 'Faculty: ' + input('Enter Comments: ') + '\n'
     #     update_leave_table(rows[0][5], leave_id, comments)
+
+    if len(rows) == 0:
+        arr = {}
+        return arr
 
     arr = {'status': rows[0][5],'comments':rows[0][4],'leave_id':leave_id}
 
