@@ -6,13 +6,14 @@
 <body>
 	<h1>Update Page</h1>
 	<header>
-		<a href={{ url_for("faculty_options",faculty_id = faculty_id )}}>Faculty Options</a>
+		<a href={{ url_for("faculty_options",faculty_id = arr[0]["faculty_id"], name = arr[0]["name"], position = arr[0]["position"], 
+		dept_name =  arr[0]["dept_name"])}}>Faculty Options</a>
 	</header>
 
 	<form action="" method="POST">
 		{{ form.hidden_tag() }}
 
-		<p>FACULTY-ID {{ faculty_id }}</p>
+		<p>FACULTY-ID {{ arr[0]["faculty_id"] }}</p>
 
 		<p>
 			{{ form.name.label }}

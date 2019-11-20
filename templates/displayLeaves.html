@@ -21,8 +21,8 @@
                     <td><input type = "submit" name = "comment" value = "{{row[0]}}" id = "{{c_string}}" hidden></td>
                 </form>
                 {%set comment_redirect = "/viewLeaves/" + approver_name + "/" + position%}
-                {%if department is not none%}
-                    {%set comment_redirect = comment_redirect + "/" + department%}
+                {%if dept_name is not none%}
+                    {%set comment_redirect = comment_redirect + "/" + dept_name%}
                 {%endif%}
                 <form  method="get"> 
                     <td><textarea name="textbox"></textarea></td>

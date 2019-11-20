@@ -6,15 +6,21 @@
 <body>
 	<h1>This is faculty options </h1>
 	<p>Faculty ID:{{ faculty_id }}</p>
+	<p>Dept: {{ dept_name }}</p>
 	<a href={{ url_for('home') }}>Home Page</a>
 	<a href={{ url_for("profile",faculty_id = faculty_id)}}>Profile</a>
 	<a href={{ url_for("update",faculty_id = faculty_id)}}>Update</a>
 	<a href={{ url_for("faculty")}}>Faculty Login</a>
 	<a href={{ url_for("applyLeave", faculty_id = faculty_id)}}>Apply Leave</a>
-	<a href={{ url_for("view_leave_status",faculty_id = faculty_id)}}>View Leave Status</a>
-	<a href={{ url_for("change_password", faculty_id = faculty_id)}}>Change Password</a>
-	{% if position == "HOD" or position == "DFA" or position == "DSA" or position == "ADFA" or position == "DIRECTOR" %}
-		<a href={{ url_for("viewLeaves", approver_name = name, position = position, department = dept_name) }}>View Leaves</a>
+	<a href={{ url_for("view_leave_status",faculty_id = faculty_id, name = name, position = position, dept_name = dept_name)}}>View Leave Status</a>
+	<a href={{ url_for("change_password", faculty_id = faculty_id, name = name, position = position, dept_name = dept_name)}}>Change Password</a>
+	{% if position == "HOD"%}
+		<a href={{ url_for("viewLeaves", approver_name = name, position = position, dept_name = dept_name)}}>View Leaves</a>
+
+	{% endif %}
+
+	{% if position == "DFA" or position == "DIRECTOR" or position == "DSA" or position == "ADFA"%}
+		<a href={{ url_for("viewLeaves", approver_name = name, position = position)}}>View Leaves</a>
 
 	{% endif %}
 

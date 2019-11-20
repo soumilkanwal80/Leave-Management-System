@@ -47,15 +47,18 @@ class LeaveApplicationForm(FlaskForm):
 
 @app.route('/applyLeave/<int:faculty_id>', methods = ('GET', 'POST'))
 def applyLeave(faculty_id):
-    leaveApplication = LeaveApplicationForm()
-    if (not leaveApplication.validate_on_submit()):
-    	print('Invalid Form')
-    	return render_template('leaveApplication.html', form = leaveApplication, faculty_id = faculty_id)
 
     mongo_cursor = init.get_cursor()
     details = list(mongo_cursor.find({
     	'faculty_id': (int)(faculty_id)
     	}))
+    leaveApplication = LeaveApplicationForm()
+    if (not leaveApplication.validate_on_submit()):
+    	print('Invalid Form')
+    	return render_template('leaveApplication.html', form = leaveApplication, faculty_id = faculty_id, name = details[0]['name'],
+    		position = details[0]['position'], dept_name = details[0]['dept_name'])
+
+    
 
     if len(details) == 0:
     	return render_template('error_template.html', error = 'Faculty-ID:' + faculty_id + ' does not exist in database')
@@ -138,17 +141,17 @@ def borrowLeaves(faculty_id, days_applied, leaves_left):
     return render_template('borrowLeaves.html', leaves_left = leaves_left, borrowed_left =  borrowed_left, param = param)
 
 
-@app.route('/viewLeaves/<approver_name>/<position>', defaults =  {'department':None})
-@app.route('/viewLeaves/<approver_name>/<position>/<department>', methods = ["GET", "POST"])
-def viewLeaves(approver_name, position, department = None):
+@app.route('/viewLeaves/<approver_name>/<position>', defaults =  {'dept_name':None})
+@app.route('/viewLeaves/<approver_name>/<position>/<dept_name>', methods = ["GET", "POST"])
+def viewLeaves(approver_name, position, dept_name = None):
     check = False
 
     max_position_num = get_faculty_leaves_order_table_size()
     position_num = get_current_position_num(position)
 
 
-    if position == 'HOD' and department is not None:
-        status = 'AT ' + str(position) + ' ' + str(department)
+    if position == 'HOD' and dept_name is not None:
+        status = 'AT ' + str(position) + ' ' + str(dept_name)
     else:
         status = 'AT ' + str(position)
 
@@ -181,7 +184,7 @@ def viewLeaves(approver_name, position, department = None):
 
         # approver_position = position
         # if (position == 'HOD'):
-        #     approver_position = position + ' ' + department
+        #     approver_position = position + ' ' + dept_name
 
         insert_trail(approver_name, leave_id_approved, 'kkkk')
 
@@ -239,7 +242,7 @@ def viewLeaves(approver_name, position, department = None):
         updatedLeaves.append(x)
     updatedLeaves = tuple(updatedLeaves)
     if check is False:
-        return render_template('displayLeaves.html', data=updatedLeaves, approver_name = approver_name, position = position, department = None)
+        return render_template('displayLeaves.html', data=updatedLeaves, approver_name = approver_name, position = position, dept_name = None)
     else:
         return redirect(request.path, code = 302)
 
@@ -248,14 +251,16 @@ def viewLeaves(approver_name, position, department = None):
 def view_leave_status(faculty_id):
 	leave_details = faculty_logic.check_leave_status(faculty_id)
 
+	mongo_cursor = init.get_cursor()
+	details = list(mongo_cursor.find({
+		'faculty_id': (int)(faculty_id)
+		}))
+
 	if len(leave_details) == 0:
 		return render_template('error_template.html', error = 'No leave application')
 	form = LeaveDetailsForm()
 	if form.validate_on_submit():
-		mongo_cursor = init.get_cursor()
-		details = list(mongo_cursor.find({
-			'faculty_id': (int)(faculty_id)
-			}))
+		
 
 		name = details[0]['name']
 		print('Leave details form validated')
@@ -263,9 +268,9 @@ def view_leave_status(faculty_id):
 		new_details = faculty_logic.check_leave_status(faculty_id)
 		form.comment.data = ''
 		###############################
-		return render_template('leave_details.html', leave_details = new_details, form = form, faculty_id = faculty_id)
+		return render_template('leave_details.html', leave_details = new_details, form = form, faculty_id = faculty_id, arr = details)
 		###############################
-	return render_template('leave_details.html', leave_details = leave_details, form = form, faculty_id = faculty_id)
+	return render_template('leave_details.html', leave_details = leave_details, form = form, faculty_id = faculty_id, arr = details)
 
 
 @app.route('/admin/change_route', methods = ["POST", "GET"])
@@ -293,9 +298,9 @@ def home():
 	return render_template('home.html')
 
 # @app.route('/faculty_options')
-@app.route('/faculty_options/<faculty_id>')
-def faculty_options(faculty_id, methods = ['GET', 'POST']):
-	return render_template('faculty_options.html', faculty_id = faculty_id)
+@app.route('/faculty_options/<faculty_id>/<name>/<position>/<dept_name>')
+def faculty_options(faculty_id,name, position,dept_name, methods = ['GET', 'POST']):
+	return render_template('faculty_options.html', faculty_id = faculty_id , name = name, position = position, dept_name = dept_name)
 
 @app.route('/profile/<faculty_id>')
 def profile(faculty_id):
@@ -331,8 +336,7 @@ def update(faculty_id):
 		faculty_logic.update_faculty_detail(faculty_id,form.name.data,form.alma_mater.data,form.education.data)
 		return render_template('faculty_options.html',faculty_id = faculty_id)
 
-	return render_template('update.html',faculty_id = details[0]['faculty_id'],name = details[0]['name']
-		,alma_mater = details[0]['alma_mater'],education = details[0]['education'],form = form)	
+	return render_template('update.html',arr = details,form = form)	
 
 
 	
@@ -426,12 +430,12 @@ def change_position():
 			return render_template('error_template.html', error = 'Faculty-ID:' + form.faculty_id.data + 'does not exist in database')
 
 		if form.dept_name.data == 'None' and form.position.data == 'HOD':
-			return render_template('error_template.html', error = 'Please specify department while changing HOD')
+			return render_template('error_template.html', error = 'Please specify dept_name while changing HOD')
 
 		if form.dept_name.data != details[0]['dept_name'] and form.position.data == 'HOD':	
-			return render_template('error_template.html', error = 'Faculty being made HOD should be of the same department\n' + 
-				'current department of faculty:' + details[0]['dept_name'] +
-				'\n department being assigned:' + form.dept_name.data)
+			return render_template('error_template.html', error = 'Faculty being made HOD should be of the same dept_name\n' + 
+				'current dept_name of faculty:' + details[0]['dept_name'] +
+				'\n dept_name being assigned:' + form.dept_name.data)
 		
 		admin_logic.change_faculty_position(form.position.data,form.dept_name.data,form.faculty_id.data)		
 
@@ -450,11 +454,11 @@ def hod_login():
 			}))
 
 		if len(details) == 0:
-			return render_template('error_template.html', error = 'There is no HOD for ' + form.dept_name.data + ' department')
+			return render_template('error_template.html', error = 'There is no HOD for ' + form.dept_name.data + ' dept_name')
 
 		print(details)
-		return redirect(url_for('viewLeaves',approver_name = details[0]['name'], position = 'HOD', department = details[0]['dept_name'])) 
-		# viewLeaves(approver_name = details[0]['name'], position = 'HOD', department = details[0]['dept_name'])
+		return redirect(url_for('viewLeaves',approver_name = details[0]['name'], position = 'HOD', dept_name = details[0]['dept_name'])) 
+		# viewLeaves(approver_name = details[0]['name'], position = 'HOD', dept_name = details[0]['dept_name'])
 
 
 	return render_template('hod_login.html', form = form)
@@ -496,13 +500,15 @@ def director_login():
 
 @app.route('/change_password/<faculty_id>', methods = ['GET', 'POST'])
 def change_password(faculty_id):
+
+	mongo_cursor = init.get_cursor()
+	details = list(mongo_cursor.find({
+		'faculty_id': (int)(faculty_id)
+		}))
 	form = ChangePasswordForm()
 	if form.validate_on_submit():
 		print('Password change form validated')
-		mongo_cursor = init.get_cursor()
-		details = list(mongo_cursor.find({
-			'faculty_id': (int)(faculty_id)
-			}))
+		
 
 		if len(details) == 0:
 			return render_template('error_template.html', error = 'Faculty-ID:' + form.faculty_id.data + 'does not exist in database')
@@ -516,7 +522,7 @@ def change_password(faculty_id):
 
 		return redirect(url_for('faculty'))	
 
-	return render_template('change_password.html', form = form, faculty_id = faculty_id)
+	return render_template('change_password.html', form = form, faculty_id = faculty_id, arr = details)
 
 
 @app.route('/view_trail')
