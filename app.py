@@ -17,7 +17,7 @@ from change_password_form import ChangePasswordForm
 import os
 import re
 # from flask import Flask, request, url_for, render_template, redirect, flash
-from leaves import initialize, insert_leaves_table, getLeavesWithStatus, getBorrowedLeaves, update_leave_table, delete_from_borrowed, insert_trail, getLeaveDataWithLeaveId, add_comments, drop_faculty_leaves_order_table, update_faculty_leaves_order_table, get_faculty_leaves_order_table_size, get_current_position_name, get_current_position_num
+from leaves import initialize, insert_leaves_table, getLeavesWithStatus, getBorrowedLeaves, update_leave_table, delete_from_borrowed, insert_trail, getLeaveDataWithLeaveId, add_comments, drop_faculty_leaves_order_table, update_faculty_leaves_order_table, get_faculty_leaves_order_table_size, get_current_position_name, get_current_position_num, get_position_history
 from leaves import get_trail
 from flask_wtf import  FlaskForm
 from wtforms import StringField, DateField, SubmitField, TextField
@@ -319,7 +319,10 @@ def profile(faculty_id):
 		pprint.pprint(details)
 	return render_template('profile.html',arr = details)
 
-
+@app.route('/view_history')
+def view_position_history():
+	rows = get_position_history()
+	return render_template('position_history.html', rows = rows)
 
 @app.route('/update/<faculty_id>',methods = ['GET','POST'])
 def update(faculty_id):
