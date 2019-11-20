@@ -49,11 +49,21 @@ class LeaveApplicationForm(FlaskForm):
 def applyLeave(faculty_id):
     leaveApplication = LeaveApplicationForm()
     if (not leaveApplication.validate_on_submit()):
-        print('Invalid Form')
-        return render_template('leaveApplication.html', form = leaveApplication, faculty_id = faculty_id)
+    	print('Invalid Form')
+    	return render_template('leaveApplication.html', form = leaveApplication, faculty_id = faculty_id)
+
+    mongo_cursor = init.get_cursor()
+    details = list(mongo_cursor.find({
+    	'faculty_id': (int)(faculty_id)
+    	}))
+
+    if len(details) == 0:
+    	return render_template('error_template.html', error = 'Faculty-ID:' + faculty_id + ' does not exist in database')
+
+    dept_name = details[0]['dept_name']			  
     
     if get_current_position_name(1) == 'HOD':
-        status = 'AT HOD ' + 'CSE'
+        status = 'AT HOD ' + dept_name
     else:
         status = 'AT ' + get_current_position_name(1)
     print('Status: ' + status)
@@ -339,7 +349,8 @@ def faculty():
 			return render_template('error_template.html', error = 'Faculty-ID:' + form.faculty_id.data + ' is not in database')
 
 		if details[0]['password'] == form.password.data:
-			return render_template('faculty_options.html',faculty_id = form.faculty_id.data, dept_name = details[0]['dept_name'])	
+			return render_template('faculty_options.html',faculty_id = form.faculty_id.data, dept_name = details[0]['dept_name'], 
+				position = details[0]['position'], name = details[0]['name'])	
 
 		else:
 			return render_template('error_template.html', error = 'Password for Faculty-ID:' + str(details[0]['faculty_id']) + ' is incorrect')	

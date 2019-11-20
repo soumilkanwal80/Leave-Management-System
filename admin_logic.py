@@ -102,7 +102,7 @@ def change_faculty_position(req_position,req_dept,new_faculty_id):
 		print('old hod id:' + str(old_hod_id))
 		print('new_hod_id:' + str(new_hod_id))
 
-		if old_hod_id == -1:
+		if old_hod_id != -1:
 			cursor.update_one({'faculty_id':old_hod_id},{
 			'$set':{
 			'position':'Faculty'
