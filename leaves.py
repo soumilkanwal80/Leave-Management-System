@@ -5,7 +5,7 @@ from datetime import datetime, date
 
 # conn = psycopg2.connect(host="127.0.0.1", user="postgres", password="inbruge137", port="5432", database="database")
 
-conn = psycopg2.connect(host="127.0.0.1", user="postgres", password="inbruge137", port="5432", database="database")
+conn = psycopg2.connect(host="127.0.0.1", user="admin", password="admin", port="5432", database="database")
 cursor = conn.cursor()
 
 
@@ -37,9 +37,28 @@ def initialize():
                         approver_position TEXT NOT NULL
                     );''')
     
-    
+    cursor.execute('''CREATE TABLE IF NOT EXISTS position_history(                    
+                        faculty_id INTEGER NOT NULL, 
+                        start_date DATE NOT NULL,
+                        end_date DATE , 
+                        position TEXT NOT NULL
+                );''')    
 
     conn.commit()
+
+def insert_position_history(faculty_id, position, department = None):
+    if department is not None:
+        position = position + ' ' + department
+    cursor.execute('''INSERT INTO position_history(faculty_id, start_date, position) VALUES (%s, %s, %s)''', (faculty_id, datetime.now(), position))
+    conn.commit()
+
+def update_position_history(faculty_id, position, department = None):
+    if department is not None:
+        position = position + ' ' + department
+    
+    cursor.execute('''UPDATE position_history SET end_date = %s WHERE faculty_id = %s AND position = %s AND end_date IS NULL''', (datetime.now(), faculty_id, position))
+    conn.commit()
+
 
 def drop_faculty_leaves_order_table():
     cursor.execute('''DELETE FROM faculty_leaves_order;''')
